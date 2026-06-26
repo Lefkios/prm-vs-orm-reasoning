@@ -1,0 +1,18 @@
+{
+  "total_problems": 10,
+  "total_responses": 80,
+  "overall_accuracy": 0.9375,
+  "config": {
+    "model_path": "models/qwen2.5-7b",
+    "output_path": "models/orm-trained",
+    "num_train_problems": 10,
+    "group_size": 8,
+    "max_new_tokens": 512,
+    "learning_rate": 1e-05,
+    "num_epochs": 1,
+    "clip_epsilon": 0.2,
+    "kl_coefficient": 0.01,
+    "wandb_project": "prm-vs-orm-reasoning",
+    "wandb_run_name": "orm-training"
+  }
+}

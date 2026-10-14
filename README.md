@@ -1,5 +1,9 @@
 # Beyond Human Annotation: Automated Step Scoring for Process Reward Modelling in Small Language Models
 
+> **Key finding:** Human step labels gave the best GSM8K accuracy (94.5% vs a 91.0% baseline), while GPT-4o mini step labels fell slightly below baseline (90.5%). The LLM-judge rewards barely moved the policy (KL 0.002 vs 0.065), so label quality, not reward design, was the bottleneck.
+>
+> *Note: GSM8K results use 200 problems, so differences of 2–3 points correspond to only a handful of questions and should be read as directional.*
+
 A summer research project comparing three reward strategies for fine-tuning a 7B language model on mathematical reasoning using Group Relative Policy Optimization (GRPO). All training runs on a MacBook Pro M5 Pro (48 GB unified memory) using LoRA and Apple MPS.
 
 ---
@@ -42,7 +46,7 @@ All three conditions share the same base model (Qwen2.5-7B-Instruct), LoRA confi
 
 PRM-human improves majority-vote accuracy by **+3.5pp over baseline** and **+2.5pp over ORM**. PRM-auto falls below baseline, suggesting GPT-4o mini step labels are too noisy to improve upon outcome-only rewards.
 
-### MATH-500 — Greedy decoding (200 problems, in-domain training)
+### MATH-500 subset — Greedy decoding (200 of the 500 problems, in-domain training)
 
 | Model | Overall | L1 | L2 | L3 | L4 | L5 |
 |-------|:-------:|:--:|:--:|:--:|:--:|:--:|

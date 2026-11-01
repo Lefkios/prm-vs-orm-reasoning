@@ -2,7 +2,7 @@
 
 > **Key finding:** Human step labels gave the best GSM8K accuracy (94.5% vs a 91.0% baseline), while GPT-4o mini step labels fell slightly below baseline (90.5%). The LLM-judge rewards barely moved the policy (KL 0.002 vs 0.065), so label quality, not reward design, was the bottleneck.
 >
-> *Note: GSM8K results use 200 problems, so differences of 2–3 points correspond to only a handful of questions and should be read as directional.*
+> *On a paired test over the same 200 problems, PRM-human beats the baseline (McNemar p = 0.04) and PRM-auto (p = 0.008). See [Statistical significance](#statistical-significance) for the full comparison and caveats.*
 
 A summer research project comparing three reward strategies for fine-tuning a 7B language model on mathematical reasoning using Group Relative Policy Optimization (GRPO). All training runs on a MacBook Pro M5 Pro (48 GB unified memory) using LoRA and Apple MPS.
 
@@ -35,29 +35,55 @@ All three conditions share the same base model (Qwen2.5-7B-Instruct), LoRA confi
 
 ## Results
 
-### GSM8K — Best-of-8 selection (200 test problems)
+### GSM8K: best-of-8 majority vote (200 test problems)
 
-| Model | Majority-vote | Pass@8 (oracle) |
-|-------|:------------:|:---------------:|
-| Baseline (no fine-tuning) | 91.0% | 96.0% |
-| ORM-GSM8K | 92.0% | 96.5% |
-| **PRM-human-GSM8K** | **94.5%** | 96.0% |
-| PRM-auto-GSM8K | 90.5% | 95.5% |
+| Model | Majority-vote [95% CI] | Pass@8 (oracle) |
+|-------|:----------------------:|:---------------:|
+| Baseline (no fine-tuning) | 91.0% [87.0, 95.0] | 96.0% |
+| ORM-GSM8K | 92.0% [88.0, 95.5] | 96.5% |
+| **PRM-human-GSM8K** | **94.5% [91.0, 97.5]** | 96.0% |
+| PRM-auto-GSM8K | 90.5% [86.5, 94.5] | 95.5% |
 
-PRM-human improves majority-vote accuracy by **+3.5pp over baseline** and **+2.5pp over ORM**. PRM-auto falls below baseline, suggesting GPT-4o mini step labels are too noisy to improve upon outcome-only rewards.
+PRM-human improves majority-vote accuracy by +3.5pp over baseline and +2.5pp over ORM. PRM-auto falls slightly below baseline, suggesting GPT-4o mini step labels are too noisy to improve on outcome-only rewards.
 
-### MATH-500 subset — Greedy decoding (200 of the 500 problems, in-domain training)
+### MATH-500 subset: greedy decoding (200 of the 500 problems, in-domain training)
 
-| Model | Overall | L1 | L2 | L3 | L4 | L5 |
-|-------|:-------:|:--:|:--:|:--:|:--:|:--:|
-| Baseline | 49.0% | 95% | 73% | 66% | 34% | 8% |
-| ORM-MATH | 54.5% | 90% | 80% | 66% | **48%** | 14% |
-| PRM-human-MATH | 54.0% | 90% | 80% | 66% | 39% | **20%** |
-| PRM-auto-MATH | 53.0% | 95% | 80% | 68% | 36% | 14% |
+| Model | Overall [95% CI] | L1 (n=21) | L2 (n=44) | L3 (n=41) | L4 (n=44) | L5 (n=50) |
+|-------|:----------------:|:--:|:--:|:--:|:--:|:--:|
+| Baseline | 49.0% [42.0, 56.0] | 20 | 32 | 27 | 15 | 4 |
+| ORM-MATH | 54.5% [47.5, 61.5] | 19 | 35 | 27 | **21** | 7 |
+| PRM-human-MATH | 54.0% [47.0, 61.0] | 19 | 35 | 27 | 17 | **10** |
+| PRM-auto-MATH | 53.0% [46.0, 60.0] | 20 | 35 | 28 | 16 | 7 |
 
-All three conditions improve over baseline by ~5pp. ORM gains most on mid-difficulty problems (L4), while PRM-human shows the largest gain on the hardest problems (L5: 8% → 20%), consistent with step-level supervision helping most where multi-step reasoning is required.
+Per-level columns are problems solved. All three conditions improve over baseline by 4 to 5.5pp. ORM gains most on L4 and PRM-human on L5 (4 → 10 of 50), which fits the idea that step-level supervision helps most on long multi-step problems, but the per-level counts are too small to treat as more than a hint.
 
-**Key finding:** Automated step scoring does not replicate the benefits of human annotation. Annotation quality — not reward shaping — is the bottleneck for PRM at this scale.
+### Statistical significance
+
+Every model is evaluated on the same problems, so differences are tested with paired methods: a paired bootstrap of the accuracy difference (10,000 resamples) and an exact McNemar test on the problems where the two models disagree. The unpaired CIs above overlap heavily, which understates how consistent the paired differences are. Full output is in [`results/significance.json`](results/significance.json); reproduce with `python src/significance.py`.
+
+![Paired differences](results/paired_differences.png)
+
+| Comparison | Δ accuracy [95% CI] | Wins / losses | McNemar p |
+|------------|:-------------------:|:-------------:|:---------:|
+| GSM8K: PRM-human vs Baseline | +3.5pp [+0.5, +6.5] | 8 / 1 | 0.039 |
+| GSM8K: PRM-human vs ORM | +2.5pp [+0.5, +5.0] | 5 / 0 | 0.062 |
+| GSM8K: PRM-human vs PRM-auto | +4.0pp [+1.5, +7.0] | 8 / 0 | 0.008 |
+| GSM8K: ORM vs Baseline | +1.0pp [−1.5, +4.0] | 5 / 3 | 0.73 |
+| MATH: ORM vs Baseline | +5.5pp [+0.5, +10.5] | 18 / 7 | 0.043 |
+| MATH: PRM-human vs Baseline | +5.0pp [+1.0, +9.0] | 14 / 4 | 0.031 |
+| MATH: PRM-auto vs Baseline | +4.0pp [+0.5, +8.0] | 12 / 4 | 0.077 |
+| MATH: PRM-human vs ORM | −0.5pp [−4.5, +3.5] | 7 / 8 | 1.00 |
+
+What holds up: on GSM8K, PRM-human beats both the baseline and PRM-auto, and the PRM-human vs ORM gap is borderline (p = 0.06). On MATH, GRPO training helps over the baseline, but the three reward types can't be told apart at this sample size.
+
+**Key finding:** on GSM8K, automated step scoring did not replicate the benefit of human-annotated step labels (PRM-human beat PRM-auto, p = 0.008). At this scale, label quality looks like the bottleneck for PRMs rather than the step-level reward shape itself.
+
+### Limitations
+
+- One training seed per condition, so run-to-run variance from GRPO is not measured.
+- Evaluation uses 200 problems per benchmark. Differences below roughly 3pp should not be read as real.
+- A single base model (Qwen2.5-7B-Instruct) and a single LLM judge (GPT-4o mini) for PRM-auto. A stronger judge might close the gap.
+- Training sets are small after filtering (255 GSM8K, 206 MATH problems).
 
 ---
 

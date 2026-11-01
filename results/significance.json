@@ -1,0 +1,263 @@
+{
+  "gsm8k_best_of_8_majority": {
+    "accuracy": {
+      "Baseline": {
+        "acc": 91.0,
+        "ci": [
+          87.0,
+          95.0
+        ]
+      },
+      "ORM": {
+        "acc": 92.0,
+        "ci": [
+          88.0,
+          95.5
+        ]
+      },
+      "PRM-human": {
+        "acc": 94.5,
+        "ci": [
+          91.0,
+          97.5
+        ]
+      },
+      "PRM-auto": {
+        "acc": 90.5,
+        "ci": [
+          86.5,
+          94.5
+        ]
+      }
+    },
+    "paired": {
+      "ORM vs Baseline": {
+        "diff_pp": 1.0,
+        "ci_pp": [
+          -1.5,
+          4.0
+        ],
+        "a_only": 5,
+        "b_only": 3,
+        "mcnemar_p": 0.7265625
+      },
+      "PRM-human vs Baseline": {
+        "diff_pp": 3.5000000000000004,
+        "ci_pp": [
+          0.5,
+          6.5
+        ],
+        "a_only": 8,
+        "b_only": 1,
+        "mcnemar_p": 0.0390625
+      },
+      "PRM-auto vs Baseline": {
+        "diff_pp": -0.5,
+        "ci_pp": [
+          -2.5,
+          1.0
+        ],
+        "a_only": 1,
+        "b_only": 2,
+        "mcnemar_p": 1.0
+      },
+      "PRM-human vs ORM": {
+        "diff_pp": 2.5,
+        "ci_pp": [
+          0.5,
+          5.0
+        ],
+        "a_only": 5,
+        "b_only": 0,
+        "mcnemar_p": 0.0625
+      },
+      "PRM-human vs PRM-auto": {
+        "diff_pp": 4.0,
+        "ci_pp": [
+          1.5,
+          7.000000000000001
+        ],
+        "a_only": 8,
+        "b_only": 0,
+        "mcnemar_p": 0.0078125
+      }
+    }
+  },
+  "math500_greedy": {
+    "accuracy": {
+      "Baseline": {
+        "acc": 49.0,
+        "ci": [
+          42.0,
+          56.00000000000001
+        ]
+      },
+      "ORM": {
+        "acc": 54.50000000000001,
+        "ci": [
+          47.5,
+          61.5
+        ]
+      },
+      "PRM-human": {
+        "acc": 54.0,
+        "ci": [
+          47.0,
+          61.0
+        ]
+      },
+      "PRM-auto": {
+        "acc": 53.0,
+        "ci": [
+          46.0,
+          60.0
+        ]
+      }
+    },
+    "paired": {
+      "ORM vs Baseline": {
+        "diff_pp": 5.5,
+        "ci_pp": [
+          0.5,
+          10.5
+        ],
+        "a_only": 18,
+        "b_only": 7,
+        "mcnemar_p": 0.043285250663757324
+      },
+      "PRM-human vs Baseline": {
+        "diff_pp": 5.0,
+        "ci_pp": [
+          1.0,
+          9.0
+        ],
+        "a_only": 14,
+        "b_only": 4,
+        "mcnemar_p": 0.0308837890625
+      },
+      "PRM-auto vs Baseline": {
+        "diff_pp": 4.0,
+        "ci_pp": [
+          0.5,
+          8.0
+        ],
+        "a_only": 12,
+        "b_only": 4,
+        "mcnemar_p": 0.076812744140625
+      },
+      "PRM-human vs ORM": {
+        "diff_pp": -0.5,
+        "ci_pp": [
+          -4.5,
+          3.5000000000000004
+        ],
+        "a_only": 7,
+        "b_only": 8,
+        "mcnemar_p": 1.0
+      },
+      "PRM-human vs PRM-auto": {
+        "diff_pp": 1.0,
+        "ci_pp": [
+          -2.0,
+          4.0
+        ],
+        "a_only": 6,
+        "b_only": 4,
+        "mcnemar_p": 0.75390625
+      }
+    },
+    "per_level_counts": {
+      "1": {
+        "Baseline": {
+          "correct": 20,
+          "n": 21
+        },
+        "ORM": {
+          "correct": 19,
+          "n": 21
+        },
+        "PRM-human": {
+          "correct": 19,
+          "n": 21
+        },
+        "PRM-auto": {
+          "correct": 20,
+          "n": 21
+        }
+      },
+      "2": {
+        "Baseline": {
+          "correct": 32,
+          "n": 44
+        },
+        "ORM": {
+          "correct": 35,
+          "n": 44
+        },
+        "PRM-human": {
+          "correct": 35,
+          "n": 44
+        },
+        "PRM-auto": {
+          "correct": 35,
+          "n": 44
+        }
+      },
+      "3": {
+        "Baseline": {
+          "correct": 27,
+          "n": 41
+        },
+        "ORM": {
+          "correct": 27,
+          "n": 41
+        },
+        "PRM-human": {
+          "correct": 27,
+          "n": 41
+        },
+        "PRM-auto": {
+          "correct": 28,
+          "n": 41
+        }
+      },
+      "4": {
+        "Baseline": {
+          "correct": 15,
+          "n": 44
+        },
+        "ORM": {
+          "correct": 21,
+          "n": 44
+        },
+        "PRM-human": {
+          "correct": 17,
+          "n": 44
+        },
+        "PRM-auto": {
+          "correct": 16,
+          "n": 44
+        }
+      },
+      "5": {
+        "Baseline": {
+          "correct": 4,
+          "n": 50
+        },
+        "ORM": {
+          "correct": 7,
+          "n": 50
+        },
+        "PRM-human": {
+          "correct": 10,
+          "n": 50
+        },
+        "PRM-auto": {
+          "correct": 7,
+          "n": 50
+        }
+      }
+    }
+  },
+  "method": "Percentile bootstrap, 10000 resamples over problems, seed 0; exact McNemar test."
+}

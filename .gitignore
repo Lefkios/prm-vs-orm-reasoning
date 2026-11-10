@@ -1,6 +1,0 @@
-models/
-venv/
-.env
-wandb/
-__pycache__/
-data/prm800k/

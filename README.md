@@ -1,8 +1,8 @@
 # Beyond Human Annotation: Automated Step Scoring for Process Reward Modelling in Small Language Models
 
-> **Key finding:** Human step labels gave the best GSM8K accuracy (94.5% vs a 91.0% baseline), while GPT-4o mini step labels fell slightly below baseline (90.5%). The LLM-judge rewards barely moved the policy (KL 0.002 vs 0.065), so label quality, not reward design, was the bottleneck.
+> **Key finding:** On GSM8K, GRPO with step-level rewards from a PRM800K-trained classifier (PRM-human) gave the best majority-vote accuracy (94.5% vs a 91.0% baseline, paired McNemar p = 0.04). GPT-4o mini step labels (PRM-auto) did not improve on the baseline (90.5%).
 >
-> *On a paired test over the same 200 problems, PRM-human beats the baseline (McNemar p = 0.04) and PRM-auto (p = 0.008). See [Statistical significance](#statistical-significance) for the full comparison and caveats.*
+> *Caveat: the PRM-auto runs used a stronger KL penalty and a different training length than the GSM8K ORM and PRM-human runs (see [Training configurations](#training-configurations)), so the PRM-human vs PRM-auto gap is not a controlled comparison yet. A matched rerun is planned.*
 
 A summer research project comparing three reward strategies for fine-tuning a 7B language model on mathematical reasoning using Group Relative Policy Optimization (GRPO). All training runs on a MacBook Pro M5 Pro (48 GB unified memory) using LoRA and Apple MPS.
 
@@ -29,7 +29,7 @@ PRMs trained on human annotations (e.g. PRM800K) have been shown to outperform O
 | **PRM-human** | Step-level scores from a classifier trained on PRM800K human labels | GSM8K / MATH |
 | **PRM-auto** | Step-level scores from GPT-4o mini judging each reasoning step | GSM8K / MATH |
 
-All three conditions share the same base model (Qwen2.5-7B-Instruct), LoRA configuration, GRPO hyperparameters, and training data.
+All three conditions share the same base model (Qwen2.5-7B-Instruct), LoRA configuration, group size, learning rate, and training data, but the number of epochs and the KL coefficient differ between runs (see [Training configurations](#training-configurations)). Both PRM rewards also include a ±0.5 outcome bonus on top of the step score, so the comparison is outcome-only reward vs step-level plus outcome reward.
 
 ---
 
@@ -76,7 +76,7 @@ Every model is evaluated on the same problems, so differences are tested with pa
 
 What holds up: on GSM8K, PRM-human beats both the baseline and PRM-auto, and the PRM-human vs ORM gap is borderline (p = 0.06). On MATH, GRPO training helps over the baseline, but the three reward types can't be told apart at this sample size.
 
-**Key finding:** on GSM8K, automated step scoring did not replicate the benefit of human-annotated step labels (PRM-human beat PRM-auto, p = 0.008). At this scale, label quality looks like the bottleneck for PRMs rather than the step-level reward shape itself.
+**Key finding:** on GSM8K, PRM-human was the only condition to clearly beat the baseline. The PRM-human vs PRM-auto gap (p = 0.008) is confounded by the different training configurations, so it can't be attributed to label quality alone. With 8 comparisons and no multiple-testing correction, p-values near 0.05 should be read as suggestive only.
 
 ### Limitations
 
@@ -84,6 +84,9 @@ What holds up: on GSM8K, PRM-human beats both the baseline and PRM-auto, and the
 - Evaluation uses 200 problems per benchmark. Differences below roughly 3pp should not be read as real.
 - A single base model (Qwen2.5-7B-Instruct) and a single LLM judge (GPT-4o mini) for PRM-auto. A stronger judge might close the gap.
 - Training sets are small after filtering (255 GSM8K, 206 MATH problems).
+- Training configurations are not matched (KL coefficient, epochs and steps trained, evaluated checkpoint). KL was raised from 0.01 to 0.05 after the GSM8K PRM-human run showed entropy collapse (see the comment in `src/train_prm_math.py`), so lower final KL for PRM-auto is expected from its config and isn't evidence its reward was uninformative.
+- The PRM800K classifier was trained on MATH-style solutions and applied to GSM8K solutions split on newlines. Its accuracy on the policy's own completions wasn't measured.
+- If a GPT-4o mini call fails after 3 retries, all steps are scored correct (`src/reward_functions/auto_labels.py`). The number of fallbacks wasn't logged.
 
 ---
 
@@ -98,16 +101,29 @@ The base model already solves ~88% of GSM8K problems correctly, making most prob
 
 ### GRPO
 
-Group Relative Policy Optimization generates 8 completions per problem, computes per-group advantages, and updates the policy via a clipped surrogate objective with a KL penalty. Key config:
+Group Relative Policy Optimization generates 8 completions per problem, computes per-group advantages, and updates the policy via a clipped surrogate objective with a KL penalty. Settings shared by every run:
 
 ```
 group_size         = 8
 max_new_tokens     = 384
 learning_rate      = 1e-5
-kl_coefficient     = 0.05
-epochs             = 2
 clip_epsilon       = 0.2
 ```
+
+### Training configurations
+
+Epochs and KL coefficient are taken from the `CONFIG` dict in each training script. Steps trained are the checkpoint step evaluated, out of the step count for the configured number of epochs.
+
+| Run | Script | Epochs (configured) | KL coefficient | Evaluated model | Steps trained |
+|-----|--------|:-------------------:|:--------------:|-----------------|:-------------:|
+| ORM-GSM8K | `train_orm.py` | 3 | 0.01 | `checkpoint-2400` | 2400 of 6120 (~1.2 epochs) |
+| PRM-human-GSM8K | `train_prm.py` | 3 | 0.01 | `checkpoint-2400` | 2400 of 6120 (~1.2 epochs) |
+| PRM-auto-GSM8K | `train_prm_auto_gsm8k.py` | 2 | 0.05 | final model | 4080 of 4080 (2 epochs) |
+| ORM-MATH | `train_orm_math.py` | 3 | 0.01 | `checkpoint-3100` | 3100 of 4944 (~1.9 epochs) |
+| PRM-human-MATH | `train_prm_math.py` | 2 | 0.05 | final model | 3296 of 3296 (2 epochs) |
+| PRM-auto-MATH | `train_prm_auto_math.py` | 2 | 0.05 | final model | 3296 of 3296 (2 epochs) |
+
+The ORM and PRM-human GSM8K runs and the ORM MATH run were stopped early because each was taking 15+ hours on a laptop, and the latest saved checkpoint was evaluated (about 1.2 of 3 epochs for the GSM8K runs and 1.9 of 3 for ORM-MATH); these checkpoints were not chosen by looking at test accuracy.
 
 ### LoRA
 

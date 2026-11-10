@@ -4,3 +4,5 @@ venv/
 wandb/
 __pycache__/
 data/prm800k/
+cv.tex
+.claude/
